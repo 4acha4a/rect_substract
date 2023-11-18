@@ -37,10 +37,6 @@ bool is_rect_bigger(rect_t src, rect_t substract) {
     return false;
 }
 
-bool is_out_of_bounds(rect_t src, rect_t substract) {
-    return src.x > substract.x || src.x + src.w < substract.x + substract.w || src.y > substract.y || src.y + src.h > substract.y + substract.h;
-}
-
 rect_t resize_if_bigger(rect_t src, rect_t compare) {
     rect_t resized = src;
     if (src.x < compare.x) {
@@ -114,12 +110,10 @@ void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t sub
             if (is_down(src[i], copy)) {
                 src[*src_cnt] = make_down_rect(src[i], copy);
                 ++(*src_cnt);
-                rect_t pidoras1 = src[*src_cnt];
             }
             if (is_left(src[i],copy)) {
                 src[*src_cnt] = make_left_rect(src[i], copy);
                 ++(*src_cnt);
-                rect_t pidoras1 = src[*src_cnt];
             }
             if (is_right(src[i], copy)) {
                 src[*src_cnt] = make_right_rect(src[i], copy);
@@ -177,32 +171,18 @@ int main() {
     uint8_t src_cnt = 1;
     rect_t* src = (rect_t*)malloc(src_size * sizeof(rect_t));
     src[0] = (rect_t){0, 0, 32, 24};
-    rect_t initial = src[0];
     char xy[PLANE_SIZE][PLANE_SIZE];
     for (uint16_t x = 0; x < PLANE_SIZE; ++x) {
         for (uint16_t y = 0; y < PLANE_SIZE; ++y) {
             xy[x][y] = '-';
         }
     }
-    for (uint16_t x = 0; x <= initial.w; ++x) {
-        for (uint16_t y = 0; y <= initial.h; ++y) {
+    rect_t initial = src[0];
+    for (uint16_t x = initial.x; x <= initial.x + initial.w; ++x) {
+        for (uint16_t y = initial.y; y <= initial.y + initial.h; ++y) {
             rects_substract(src, src_size, &src_cnt, (rect_t){x,y,1,1});
         }
     }
-    // rect_t substract = {1, 1, 5, 2};
-    // rects_substract(src, src_size, &src_cnt, substract);
-    // rect_t rect1 = src[0];
-    // rect_t rect2 = src[1];
-    // rect_t rect3 = src[2];
-    // rect_t rect4 = src[3];
-    // rect_t substract2 = {5, 2, 3, 1};
-    // rects_substract(src, src_size, &src_cnt, substract2);
-    // rect_t substract3 = {6, 3, 5, 2};
-    // rects_substract(src, src_size, &src_cnt, substract3);
-    // rect_t substract4 = {1, 3, 1, 2};
-    // rects_substract(src, src_size, &src_cnt, substract4);
-    // rect_t substract5 = {2, 4, 4, 1};
-    // rects_substract(src, src_size, &src_cnt, substract5);
     for (uint8_t i = 0; i < src_cnt; ++i) {
         draw_rectangle(src[i], xy);
     }
