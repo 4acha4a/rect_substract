@@ -11,6 +11,6 @@ typedef struct {
     uint16_t h;
 } rect_t; 
 
-void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t substract);
+void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t substract); //Substract src rectangle from substract, the result is written to *src and *src_cnt
 
 #endif

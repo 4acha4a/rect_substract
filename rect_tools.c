@@ -14,7 +14,7 @@ bool is_intersection(rect_t r1, rect_t r2) {
         if ((r2.x + r2.w > r1.x) && (r2.y + r2.h > r1.y))
             return true;
     return false;
-}
+} // Checks if rectangles intersect one another
 
 bool is_rect_bigger(rect_t src, rect_t substract) {
     if (src.x <= substract.x) {
@@ -23,7 +23,8 @@ bool is_rect_bigger(rect_t src, rect_t substract) {
         }
     }
     return false;
-}
+} // Checks if one rectangle is fully inside another
+
 
 rect_t resize_if_bigger(rect_t src, rect_t compare) {
     rect_t resized = src;
@@ -42,34 +43,34 @@ rect_t resize_if_bigger(rect_t src, rect_t compare) {
         resized.h = abs(compare.y - compare.h);
     }
     return resized;
-}
+} // In order to substract one rectangle from another, substracted rect must be resized if one of it's sides is out of src rect
 
 void delete_rect(rect_t* src) {
     src->w = 0;
     src->h = 0;
     src->x = 0;
     src->y = 0;
-}
+} //Deletes a rectangle (makes it a (rect_t){0, 0, 0, 0})
 
 rect_t make_up_rect(rect_t src, rect_t substract) {
     return (rect_t){substract.x, src.y, substract.w, abs(src.y - substract.y)};
-}
+} // Creates upper rectangle
 
 rect_t make_left_rect(rect_t src, rect_t substract) {
     return (rect_t){src.x, src.y, abs(src.x - substract.x),src.h};
-}
+} // Creates lower rectangle
 
 rect_t make_right_rect(rect_t src, rect_t substract) {
     return (rect_t){substract.x + substract.w, src.y, abs((substract.x + substract.w) - (src.x + src.w)), src.h};
-}
+} // Creates left rectangle
 
 rect_t make_down_rect(rect_t src, rect_t substract) {
     return (rect_t){substract.x, substract.y + substract.h, substract.w , abs((substract.y + substract.h) - (src.y + src.h))};
-}
+} // Creates right rectangle
 
 bool is_up(rect_t src, rect_t substract) {
     return substract.y != src.y;
-}
+} 
 
 bool is_down(rect_t src, rect_t substract) {
     return substract.y + substract.h != src.y + src.h;
@@ -88,11 +89,11 @@ void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t sub
         if (i > *src_cnt)
             break;
         if (!is_intersection(src[i], substract))
-            continue;
+            continue; // If rectangles don't intersect then nothing we go on
         if (is_rect_bigger(substract, src[i])) {
             delete_rect(&src[i]);
             continue;
-        }
+        } // If substracted rectangles is bigger than the source one, the last is deleted and we go on
         rect_t copy = resize_if_bigger(substract, src[i]);
         if (is_up(src[i], copy)) {
             if (is_down(src[i], copy)) {
