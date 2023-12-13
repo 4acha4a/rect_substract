@@ -12,5 +12,7 @@ typedef struct {
 } rect_t; 
 
 void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t substract); //Substract src rectangle from substract, the result is written to *src and *src_cnt
+void print_rect(rect_t rect);
+bool is_null_rect(rect_t rect);
 
 #endif

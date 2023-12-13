@@ -1,4 +1,13 @@
 #include "rect_tools.h"
+#include <stdio.h>
+
+void print_rect(rect_t rect) {
+    printf("%d; %d; %d; %d\n", rect.x, rect.y, rect.w, rect.h);
+}
+
+bool is_null_rect(rect_t rect) {
+    return rect.x == 0 && rect.y == 0 && rect.w == 0 && rect.h == 0;
+}
 
 bool is_intersection(rect_t r1, rect_t r2) {
     if ((r2.x + r2.w > r1.x) && (r2.y + r2.h > r1.y))
@@ -16,7 +25,7 @@ bool is_intersection(rect_t r1, rect_t r2) {
     return false;
 } // Checks if rectangles intersect one another
 
-bool is_rect_bigger(rect_t src, rect_t substract) {
+bool is_rect_inside(rect_t src, rect_t substract) {
     if (src.x <= substract.x) {
         if (src.y <= substract.y) {
             return src.x + src.w >= substract.x + substract.w && src.y + src.h >= substract.y + substract.h;
@@ -33,14 +42,14 @@ rect_t resize_if_bigger(rect_t src, rect_t compare) {
         resized.x = compare.x;
     }
     if (src.x + src.w > compare.x + compare.w) {
-        resized.w -= abs(compare.x - src.x); 
+        resized.w -= abs((compare.x + compare.w) - (src.x + src.w)); 
     }
     if (src.y < compare.y) {
+        resized.h -= abs(compare.y - src.y);
         resized.y = compare.y;
-        resized.h = abs(compare.y - compare.h);
     }
     if (src.y + src.h > compare.y + compare.h) {
-        resized.h = abs(compare.y - compare.h);
+        resized.h -= abs((compare.y + compare.h) - (src.y + src.h)); 
     }
     return resized;
 } // In order to substract one rectangle from another, substracted rect must be resized if one of it's sides is out of src rect
@@ -50,7 +59,7 @@ void delete_rect(rect_t* src) {
     src->h = 0;
     src->x = 0;
     src->y = 0;
-} //Deletes a rectangle (makes it a (rect_t){0, 0, 0, 0})
+} // Deletes a rectangle (makes it a (rect_t){0, 0, 0, 0})
 
 rect_t make_up_rect(rect_t src, rect_t substract) {
     return (rect_t){substract.x, src.y, substract.w, abs(src.y - substract.y)};
@@ -86,11 +95,14 @@ bool is_right(rect_t src, rect_t substract) {
 
 void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t substract) {
     for (uint8_t i = 0; i < src_size; ++i) {
-        if (i > *src_cnt)
+        rect_t pidoras = src[i];
+        if (i >= *src_cnt)
             break;
+        if (is_null_rect(src[i]))
+            continue;
         if (!is_intersection(src[i], substract))
-            continue; // If rectangles don't intersect then nothing we go on
-        if (is_rect_bigger(substract, src[i])) {
+            continue; // If rectangles don't intersect we go on
+        if (is_rect_inside(substract, src[i])) {
             delete_rect(&src[i]);
             continue;
         } // If substracted rectangles is bigger than the source one, the last is deleted and we go on
