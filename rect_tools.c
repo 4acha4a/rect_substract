@@ -1,13 +1,45 @@
 #include "rect_tools.h"
 #include <stdio.h>
+#include <errno.h>
+
+extern int errno;
+
+#define NULL_RECT (rect_t){0, 0, 0, 0}
+
+void is_buffer_full(uint8_t src_cnt, uint8_t src_size) {
+    if (src_cnt >= src_size) {
+        errno = 12;
+        perror("Error adding rectangles");
+        exit(errno);
+    }
+} // Stops execution of the program in case the buffer is full
+
+size_t find_null_rect_index(rect_t* src) {
+    size_t index = 0;
+    while (1) {
+        if (is_null_rect(src[index]))
+            break;
+        ++index;
+    }
+    return index;
+} // Finds the index of a null rect
+
+void rearrange(rect_t* src, uint8_t* src_cnt) {
+    for (size_t i = find_null_rect_index(src); i < *src_cnt; ++i) {
+        rect_t temp = src[i];
+        src[i] = src[i + 1];
+        src[i + 1] = temp;
+    }
+    --(*src_cnt);
+} // Rearranges the src array so that the src[*src_cnt] == NULL_RECT
 
 void print_rect(rect_t rect) {
     printf("%d; %d; %d; %d\n", rect.x, rect.y, rect.w, rect.h);
-}
+} // Prints rect to console in CSV format
 
 bool is_null_rect(rect_t rect) {
     return rect.x == 0 && rect.y == 0 && rect.w == 0 && rect.h == 0;
-}
+} // Checks if rect is a null_rect ({0, 0, 0 ,0})
 
 bool is_intersection(rect_t r1, rect_t r2) {
     if ((r2.x + r2.w > r1.x) && (r2.y + r2.h > r1.y))
@@ -59,7 +91,7 @@ void delete_rect(rect_t* src) {
     src->h = 0;
     src->x = 0;
     src->y = 0;
-} // Deletes a rectangle (makes it a (rect_t){0, 0, 0, 0})
+} // Deletes a rectangle (makes it a NULL_RECT)
 
 rect_t make_up_rect(rect_t src, rect_t substract) {
     return (rect_t){substract.x, src.y, substract.w, abs(src.y - substract.y)};
@@ -94,8 +126,11 @@ bool is_right(rect_t src, rect_t substract) {
 }
 
 void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t substract) {
+    is_buffer_full(*src_cnt, src_size); // Each time we check if buffer is full and if it is, we stop the execution of the program
+    if (is_null_rect(substract)) {
+        return;
+    }
     for (uint8_t i = 0; i < src_size; ++i) {
-        rect_t pidoras = src[i];
         if (i >= *src_cnt)
             break;
         if (is_null_rect(src[i]))
@@ -104,21 +139,26 @@ void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t sub
             continue; // If rectangles don't intersect we go on
         if (is_rect_inside(substract, src[i])) {
             delete_rect(&src[i]);
+            rearrange(src, src_cnt);
+            --i; 
             continue;
-        } // If substracted rectangles is bigger than the source one, the last is deleted and we go on
+        } // If substracted rectangles is bigger than the source one, the last is deleted, the list is rearranged and we go on
         rect_t copy = resize_if_bigger(substract, src[i]);
         if (is_up(src[i], copy)) {
             if (is_down(src[i], copy)) {
                 src[*src_cnt] = make_down_rect(src[i], copy);
                 ++(*src_cnt);
+                is_buffer_full(*src_cnt, src_size); // Check if the buffer is full
             }
             if (is_left(src[i],copy)) {
                 src[*src_cnt] = make_left_rect(src[i], copy);
                 ++(*src_cnt);
+                is_buffer_full(*src_cnt, src_size); // Check if the buffer is full       
             }
             if (is_right(src[i], copy)) {
                 src[*src_cnt] = make_right_rect(src[i], copy);
                 ++(*src_cnt);
+                is_buffer_full(*src_cnt, src_size); // Check if the buffer is full            
             }
             src[i] = make_up_rect(src[i], copy);
             continue;
@@ -127,10 +167,12 @@ void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t sub
             if (is_left(src[i],copy)) {
                 src[*src_cnt] = make_left_rect(src[i], copy);
                 ++(*src_cnt);
+                is_buffer_full(*src_cnt, src_size); // Check if the buffer is full          
             }
             if (is_right(src[i], copy)) {
                 src[*src_cnt] = make_right_rect(src[i], copy);
                 ++(*src_cnt);
+                is_buffer_full(*src_cnt, src_size); // Check if the buffer is full                 
             }
             src[i] = make_down_rect(src[i], copy);
             continue;
@@ -139,6 +181,7 @@ void rects_substract(rect_t* src, uint8_t src_size, uint8_t* src_cnt, rect_t sub
             if (is_right(src[i], copy)) {
                 src[*src_cnt] = make_right_rect(src[i], copy);
                 ++(*src_cnt);
+                is_buffer_full(*src_cnt, src_size); // Check if the buffer is full             
             }
             src[i] = make_left_rect(src[i], copy);
             continue;
